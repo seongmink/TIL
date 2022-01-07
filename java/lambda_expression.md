@@ -101,6 +101,8 @@ int result = myAdder.apply(5);
 
 Object 형태로 구현 했던 Function 인터페이스를 클래스 생성 없이 람다식을 통해 더 간단하게 표현할 수 있다는 것을 확인할 수 있다.
 
+
+
 ## BiFunction Interface
 
 Function 인터페이스는 하나의 input을 받아서 처리하는데, input 두 개를 받아서 처리하고 싶은 경우가 있을 수 있다. 이 때 사용하는 것이 BiFunction이다.
@@ -125,10 +127,43 @@ BiFunction<Integer, Integer, Integer> add = (Integer x, Integer y) -> {
 int result = add.apply(3, 5);
 ```
 
-여기서, 형태를 더 간단히 만들어보자. `BiFunction<Integer, Integer, Integer>` 에서 input 타입 유추가 가능하기 때문에 타입을 생략할 수 있다. 또한, 바로 리턴하기 때문에 중괄호가 역시 생략이 가능하다.
+여기서, 형태를 더 간단히 만들어보자. `BiFunction<Integer, Integer, Integer>` 에서 input 타입을 유추 할 수 있기 때문에 타입을 생략할 수 있다. 또한, 바로 리턴하기 때문에 중괄호가 역시 생략이 가능하다.
 
 ```java
 BiFunction<Integer, Integer, Integer> add = (x, y) -> x + y;
 ```
 
 한 개의 파라미터를 받는 함수형 인터페이스, 두 개의 파라미터를 받는 함수형 인터페이스를 작성해봤다. 아쉽게도 세 개의 파라미터를 받는 함수형 인터페이스는 제공하지 않는다. 만약 필요하다면 직접 인터페이스를 만들 수 있다.
+
+
+## Functional Interface
+
+`Function` 나 `BiFunction` 를 보면 `@FunctionalInterface` 어노테이션이 붙여져 있는 것을 볼 수 있는데, 이 인터페이스가 단 하나의 abstract 메소드를 가질 수 있다는 것을 명시하며 **Single Abstract Method interface**라고도 한다. 다른 메소드도 존재하지만 default와 static 메소드는 이미 구현이 되어있으므로 상관이 없다.
+
+java.util.function 패키지에 functional interface들이 존재하지만 java.lang.Runnable, java.util.Comparator, java.util.concurrent.Callable, ... 와 같은 패키지에도 functional interface들이 존재한다.
+
+제공하는 함수형 인터페이스 대신 원하는 형태의 함수형 인터페이스를 직접 만들어보자.
+
+> 세 파라미터를 받는 함수형 인터페이스를 작성하고, 이 세 파라미터를 받아 더한 값을 리턴하도록 구현하라.
+
+```java
+@FunctionalInterface
+public interface TriFunction<T, U, V, R> {
+    R apply(T t, U u, V v);
+}
+```
+
+T, U, V를 input으로 받고 R 타입을 리턴하도록 함수형 인터페이스를 작성했다. 이 함수형 인터페이스를 사용하도록 작성해보자.
+
+```java
+TriFunction<Integer, Integer, Integer, Integer> addThreeNumbers = (Integer x, Integer y, Integer z) -> {
+    return x + y + z;
+};
+int result = addThreeNumbers.apply(3, 2, 5);
+```
+
+이 형태에서 더 간단하게 만들어보자. `TriFunction<Integer, Integer, Integer, Integer>` 에서 input 타입을 유추할 수 있기 때문에 타입을 생략할 수 있고, 바로 리턴하기 때문에 중괄호와 리턴을 생략할 수 있다.
+
+```java
+TriFunction<Integer, Integer, Integer, Integer> addThreeNumbers = (x, y, z) -> x + y + z;
+```
