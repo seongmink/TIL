@@ -101,3 +101,34 @@ int result = myAdder.apply(5);
 
 Object 형태로 구현 했던 Function 인터페이스를 클래스 생성 없이 람다식을 통해 더 간단하게 표현할 수 있다는 것을 확인할 수 있다.
 
+## BiFunction Interface
+
+Function 인터페이스는 하나의 input을 받아서 처리하는데, input 두 개를 받아서 처리하고 싶은 경우가 있을 수 있다. 이 때 사용하는 것이 BiFunction이다.
+
+```java
+@FunctionalInterface
+public interface BiFunction<T, U, R> {
+    R apply(T t, U u);
+}
+```
+
+T와 U 타입의 매개변수를 받아서 R 리턴 타입을 의미한다. 이 역시 apply라는 단 하나의 abstract 메소드를 가지고 있다.
+
+> input 두 값을 받아 더하여 반환하는 람다식을 작성하라.
+
+다음과 같이 구현할 수 있다.
+
+```java
+BiFunction<Integer, Integer, Integer> add = (Integer x, Integer y) -> {
+    return x + y;
+};
+int result = add.apply(3, 5);
+```
+
+여기서, 형태를 더 간단히 만들어보자. `BiFunction<Integer, Integer, Integer>` 에서 input 타입 유추가 가능하기 때문에 타입을 생략할 수 있다. 또한, 바로 리턴하기 때문에 중괄호가 역시 생략이 가능하다.
+
+```java
+BiFunction<Integer, Integer, Integer> add = (x, y) -> x + y;
+```
+
+한 개의 파라미터를 받는 함수형 인터페이스, 두 개의 파라미터를 받는 함수형 인터페이스를 작성해봤다. 아쉽게도 세 개의 파라미터를 받는 함수형 인터페이스는 제공하지 않는다. 만약 필요하다면 직접 인터페이스를 만들 수 있다.
