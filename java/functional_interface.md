@@ -131,3 +131,50 @@ process(doubleInputs, myDoubleProcessor);
 
 
 
+## BiConsumer
+
+BiFunction에서 봤듯이 BiConsumer도 두 개의 파라미터를 가진다.
+
+```java
+@FunctionalInterface
+public interface BiConsumer<T, U> {
+    void accept(T t, U u);
+}
+```
+
+T타입과 U타입의 두 개의 파라미터를 input으로 받아 하나의 abstract 메소드를 가지는 것을 볼 수 있다. 또한, consumer 이기 때문에 아무것도 리턴할 것이 없다.
+
+processing 과정에서 사용할 index를 input으로 받아 처리하는 함수형 인터페이스를 만들어보자.
+
+```java
+BiConsumer<Integer, Double> myDoubleProcessor = (Integer index, Double input) -> {
+    System.out.println("Processing " + input + " at index " + index);
+};
+```
+
+타입을 유추할 수 있고, 한 줄 밖에 없기 때문에 다음과 같이 더 단순하게 변경할 수 있다.
+
+```java
+BiConsumer<Integer, Double> myDoubleProcessor = (index, input) -> 
+    System.out.println("Processing " + input + " at index " + index);
+```
+
+추가로, Consumer를 넘길 helper 메소드를 생성해보자.
+
+```java
+public static <T> void process(List<T> inputs, BiConsumer<Integer, T> processor) {
+        for (int i = 0; i < inputs.size(); i++) {
+            processor.accept(i, inputs.get(i));
+        }
+    }
+```
+
+BiConsumer의 첫 번째 인자는 인덱스로 사용하기 때문에 Integer 타입으로 받고, 나머지는 제네릭 타입으로 받도록 하자. 이를 사용하기 위해서 임의의 inputs 값을 만들어 인자로 넘겨서 실행해보면 값과 함께 인덱스도 함께 사용하는 것을 확인할 수 있다.
+
+```java
+List<Double> inputs = Arrays.asList(1.1, 2.2, 3.3);
+process(inputs, myDoubleProcessor);
+```
+
+
+
