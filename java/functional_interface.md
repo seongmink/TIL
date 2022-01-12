@@ -178,3 +178,75 @@ process(inputs, myDoubleProcessor);
 
 
 
+## Predicate
+
+Predicate 인터페이스는 test라는 하나의 abstract 메소드를 가진다. test 메소드는 T라는 하나의 input을 가지고 boolean을 리턴하는 함수이다. 
+
+```java
+@FunctionalInterface
+public interface Predicate<T> {
+    boolean test(T t);
+}
+```
+
+> 양수인지 음수인지 판별하는 함수를 구현하라.
+
+```java
+Predicate<Integer> isPositive = (Integer x) -> {
+    return x > 0;
+};
+```
+
+마찬가지로, input 타입을 유추할 수 있으므로 Integer 생략, input이 하나이기 때문에 괄호 생략, 바로 리턴하기 때문에 중괄호 생략으로 아래와 같이 단순하게 표현할 수 있다.
+
+```java
+Predicate<Integer> isPositive = x -> x > 0;
+```
+
+> 제네릭 타입인 list와 Predicate를 input으로 받아 Predicate를 통과한 list의 값들만 뽑아, 새로운 list를 만들어 리턴하는 filter 함수를 만들어라.
+
+```java
+public static <T> List<T> filter(List<T> inputs, Predicate<T> condition) {
+    List<T> output = new ArrayList<>();
+    for (T input : inputs) {
+        if (condition.test(input)) {
+            output.add(input);
+        }
+    }
+    return output;
+}
+```
+
+위 함수를 테스트 하기 위해 더미 데이터를 만들어보자.
+
+```java
+List<Integer> inputs = Arrays.asList(10, -5, 4, -2, 0);
+```
+
+여기서, 테스트를 하기 위해 아래와 같이 작성해서 실행하면 양수인 값들만 출력하는 것을 확인할 수 있다.
+
+```java
+System.out.println("Positive numbers: " + filter(inputs, isPositive));
+```
+
+또한, Predicate 인터페이스 안에 `negate()`, `or()`, `and()`같은 default 메소드가 있는데, 이 또한 값을 판별해주는 메소드들이다. 이 메소드들을 활용해보자.
+
+1. `negate`메소드는  Predicate의 반대 조건으로 동작한다. 아래와 같이 구현하게 되면, x > 0이 아닌 값을 출력하게 된다.
+
+```java
+System.out.println("Non-positive numbers: " + filter(inputs, isPositive.negate()));
+```
+
+2. Predicate 조건을 0 초과인 값에서 0 이상인 값들로 변경하고 싶다면 어떻게 할까? `or` 메소드를 활용하면 된다. 아래와 같이 새로운 Predicate를 or 조건으로 두고 사용하면 0 이상인 값을 출력할 수 있다.
+
+```java
+System.out.println("Non-positive numbers: " + filter(inputs, isPositive.or(x -> x == 0)));
+```
+
+3. 마지막으로, `and` 메소드를 활용해보자. 양수이면서 2의 배수인 값을 조건으로 두고싶다면 다음과 같이 구현하면 된다.
+
+```java
+System.out.println("Positive even numbers:" + filter(inputs, isPositive.and(x -> x % 2 == 0)));
+```
+
+이처럼 filter 메소드를 하나 만들었을 뿐인데, 다양한 방법으로 활용할 수 있다.
