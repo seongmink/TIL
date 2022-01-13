@@ -250,3 +250,89 @@ System.out.println("Positive even numbers:" + filter(inputs, isPositive.and(x ->
 ```
 
 이처럼 filter 메소드를 하나 만들었을 뿐인데, 다양한 방법으로 활용할 수 있다.
+
+
+
+## Comparator
+
+Comparator는 java.util.function 안에 존재하는 인터페이스가 아니라 java.util 안에 위치하고 있다.
+
+```java
+@FunctionalInterface
+public interface Comparator<T> {
+    int compare(T o1, T o2);
+}
+```
+
+- 음수면 o1 < o2
+- 0이면 o1 = o2
+- 양수면 o1 > o2
+
+Comparator의 비교 대상으로 사용할 User라는 Object를 만들어보자.
+
+```java
+public class User {
+
+    private int id;
+    private String name;
+
+    public User(int id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                '}';
+    }
+}
+```
+
+그리고 다음과 같이 테스트 할 더미데이터를 만들어보자. 3개의 객체를 리스트에 담았다.
+
+```java
+List<User> users = new ArrayList<>();
+users.add(new User(3, "Alice"));
+users.add(new User(1, "Charlie"));
+users.add(new User(5, "Bob"));
+```
+
+이 상태에서 출력을 하게 되면 users에 add 된 순서대로 출력이 되는데, 원하는 순서대로 출력을 하도록 구현해보자.
+
+정렬을 하기 위해 `Collections.sort()`를 사용할 건데, 이 메소드를 확인해보면 인자로 list와 Comparator를 받을 수 있게 되어있다. (List 안에 존재하는 sort()를 사용해도 되며, 역시 인자로 Comparator를 받도록 되어있다.)
+
+> 유저의 id 순서대로 출력하도록 정렬하는 Comparator를 구현하라.
+
+```java
+Comparator<User> idComparator = (User u1, User u2) -> {
+    return u1.getId() - u2.getId();
+};
+```
+
+u1의 id가 더 작을 경우에는 음수, 같으면 0을, 더 크다면 양수를 리턴하게 된다. 따라서 id가 더 작을 수록 먼저 출력된다.
+
+여기서 더 단순하게 Comparator를 바꿔보자. User의 타입을 유추할 수 있기 때문에 User 생략, 바로 return 하기 때문에 중괄호 생략하여 다음과 같이 표현할 수 있다.
+
+```java
+Comparator<User> idComparator = (u1, u2) -> u1.getId() - u2.getId();
+```
+
+> 유저의 name 순서대로 출력하도록 정렬하는 Comparator를 구현하라.
+
+이번에는 Comparator를 바로 인자로 넣어보자. name은 int가 아니라 String이기 때문에 값을 비교하기 위해서 `compareTo()`를 사용한다. 알파벳이 앞서면 음수를, 같으면 0을, 뒤로 가면 양수를 리턴한다. (사전 순)
+
+```java
+Collections.sort(users, (u1, u2) -> u1.getName().compareTo(u2.getName()));
+```
+
