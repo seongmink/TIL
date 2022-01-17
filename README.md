@@ -8,4 +8,5 @@
 - [람다식(Lambda Expression)](./java/lambda_expression.md)
 - [함수형 인터페이스(Functional Interface)](./java/functional_interface.md)
 - [메소드 참조(Method Reference)](./java/method_reference.md)
+- [스트림(Stream)](./java/stream.md)
 
