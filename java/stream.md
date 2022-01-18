@@ -31,3 +31,159 @@ stream은 시내, 개울이라는 뜻을 가진 단어이다. 자바에서의 �
   List<Integer> numberList = numberStream.collect(Collectors.toList());
   ```
 
+
+
+## Filter
+
+무엇인가를 걸러주는 거름종이 같은 필터를 의미한다. 스트림에서 어떤 조건을 만족하는 데이터만 걸러내는데 사용된다. 다음과 같이 Predicate에 true를 반환하는 데이터만 존재하는 stream을 리턴한다.
+
+```java
+Stream<T> filter(Predicate<? super T> predicate);
+```
+
+> 양수를 걸러내는 필터를 만들어라
+
+```java
+Stream<Integer> numberStream = Stream.of(3, -5, 7, 10, -3);
+Stream<Integer> filteredNumberStream = numberStream.filter(x -> x > 0);
+List<Integer> filteredNumbers = filteredNumberStream.collect(Collectors.toList());
+```
+
+다음과 같이 스트림을 of로 생성하고, 바로 filter를 호출하고 collect를 호출해도 된다.
+
+```java
+List<Integer> newFilteredNumbers = Stream.of(3, -5, 7, 10, -3)
+                .filter(x -> x > 0)
+                .collect(Collectors.toList());
+```
+
+추가적인 실전에 가까운 예제를 위해 3가지 POJO를 만들어보자.
+
+```java
+public class User {
+
+    private int id;
+    private String name;
+    private String emailAddress;
+    private boolean isVerified;
+    private List<Integer> friendUserIds;
+
+    // getter, setter, toString 생략
+    // setter의 리턴 타입은 User이며, 체이닝을 위해 return this를 넣어준다.
+}
+```
+
+```java
+public class Order {
+
+    private long id;
+    private LocalDateTime createdAt;
+    private long createdByUserId;
+    private OrderStatus status;
+    private BigDecimal amount;
+    private List<OrderLine> orderLines;
+
+    public enum OrderStatus {
+        CREATED,
+        IN_PROGRESS,
+        ERROR,
+        PROCESSED
+    }
+    
+    // getter, setter, toString 생략
+    // setter의 리턴 타입은 Order이며, 체이닝을 위해 return this를 넣어준다.
+}
+```
+
+```java
+public class OrderLine {
+
+    private long id;
+    private OrderLineType type;
+    private long productId;
+    private int quantity;
+    private BigDecimal amount;
+
+    public enum OrderLineType {
+        PURCHASE,
+        DISCOUNT
+    }
+
+    // getter, setter, toString 생략
+}
+```
+
+일단 유저들을 생성하고, 리스트에 담자.
+
+```java
+User user1 = new User()
+                .setId(101)
+                .setName("Alice")
+                .setVerified(true)
+                .setEmailAddress("alice@test.com");
+
+User user2 = new User()
+                .setId(102)
+                .setName("Bob")
+                .setVerified(false)
+                .setEmailAddress("bob@test.com");
+
+User user3 = new User()
+                .setId(103)
+                .setName("Charlie")
+                .setVerified(true)
+                .setEmailAddress("charlie@test.com");
+
+List<User> users = Arrays.asList(user1, user2, user3);
+```
+
+> users 리스트안에서 verified 된 유저들만 걸러내라.
+
+```java
+List<User> verifiedUsers = users.stream()
+                .filter(User::isVerified)
+                .collect(Collectors.toList());
+```
+
+> users 리스트 안에서 verified 되지 않은 유저들만 걸러내라.
+
+```java
+List<User> unverifiedUsers = users.stream()
+                .filter(user -> !user.isVerified())
+                .collect(Collectors.toList());
+```
+
+추가적인 예제를 위하여 Order를 생성하고 리스트에 담자.
+
+```java
+Order order1 = new Order()
+                .setId(1001)
+                .setStatus(Order.OrderStatus.CREATED);
+
+Order order2 = new Order()
+                .setId(1002)
+                .setStatus(Order.OrderStatus.ERROR);
+
+Order order3 = new Order()
+                .setId(1003)
+                .setStatus(Order.OrderStatus.PROCESSED);
+
+Order order4 = new Order()
+                .setId(1004)
+                .setStatus(Order.OrderStatus.ERROR);
+
+Order order5 = new Order()
+                .setId(1005)
+                .setStatus(Order.OrderStatus.IN_PROGRESS);
+
+List<Order> orders = Arrays.asList(order1, order2, order3, order4, order5);
+```
+
+> ERROR 상태인 order만 걸러내라.
+
+```java
+List<Order> filteredOrders = orders.stream()
+                .filter(order -> order.getStatus() == Order.OrderStatus.ERROR)
+                .collect(Collectors.toList());
+```
+
