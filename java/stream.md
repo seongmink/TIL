@@ -187,3 +187,34 @@ List<Order> filteredOrders = orders.stream()
                 .collect(Collectors.toList());
 ```
 
+
+
+## Map
+
+map은 스트림안에 있는 데이터를 변형하는데 사용한다.
+
+```java
+<R> Stream<R> map(Function<? super T, ? extends R> mapper);
+```
+
+T라는 데이터를 스트림에서 데이터마다 Function을 적용하여 R이라는 타입을 바꿔주고 이 결과를 스트림을 리턴하는 것이다.
+
+> Integer로 된 리스트의 값들을 2배한 리스트를 만들어라.
+
+```java
+List<Integer> numberList = Arrays.asList(3, 6, -4);
+List<Integer> numberListX2 = numberList.stream()
+    			.map(x -> x * 2)
+                .collect(Collectors.toList());
+```
+
+> 리스트의 값을 출력하는 map을 구현하라.
+
+위에서 생성된 numberList를 재활용하여 구현해보자.
+
+```java
+List<String> strList = numberList.stream()
+                .map(x -> "Number is " + x)
+                .collect(Collectors.toList());
+```
+
