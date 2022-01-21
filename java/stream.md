@@ -218,3 +218,19 @@ List<String> strList = numberList.stream()
                 .collect(Collectors.toList());
 ```
 
+> 위 filter에서 사용했던 user 리스트(List\<User> users)를 활용하여, 이메일만 모으는 map을 구현하라.
+
+```java
+List<String> emailAddresses = users.stream()
+                .map(User::getEmailAddress)
+                .collect(Collectors.toList());
+```
+
+> 위 filter에서 사용했던 order 리스트(List\<Order> orders)를 활용하여, createdByUserId를 모으는 map을 구현하라. 단, createdByUserId 값을 추가하여 진행한다.(order1=101, order2 =103, order3=102, order4=104, order5=101 이 생성했다고 가정하여 추가한다.)
+
+```java
+List<Long> createdByUserIds = orders.stream()
+                .map(Order::getCreatedByUserId)
+                .collect(Collectors.toList());
+```
+
