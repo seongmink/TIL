@@ -33,6 +33,16 @@ stream은 시내, 개울이라는 뜻을 가진 단어이다. 자바에서의 �
 
 
 
+## Stream의 구성요소
+
+스트림은 다음과 같이 세 부분으로 구성되어 있다.
+
+- Source (소스) : 컬렉션, 배열 등
+- Intermediate Operations (중간 처리) : 0개 이상의 filter, map 등의 중간 처리, 여러가지의 중간 처리를 이어붙이는 것이 가능하다.
+- Terminal Operation (종결 처리) : collect, reduce 등
+
+
+
 ## Filter
 
 무엇인가를 걸러주는 거름종이 같은 필터를 의미한다. 스트림에서 어떤 조건을 만족하는 데이터만 걸러내는데 사용된다. 다음과 같이 Predicate에 true를 반환하는 데이터만 존재하는 stream을 리턴한다.
@@ -233,4 +243,8 @@ List<Long> createdByUserIds = orders.stream()
                 .map(Order::getCreatedByUserId)
                 .collect(Collectors.toList());
 ```
+
+
+
+
 
