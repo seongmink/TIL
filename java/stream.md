@@ -168,23 +168,33 @@ List<User> unverifiedUsers = users.stream()
 ```java
 Order order1 = new Order()
                 .setId(1001)
-                .setStatus(Order.OrderStatus.CREATED);
+                .setStatus(Order.OrderStatus.CREATED)
+			    .setCreatedByUserId(101)
+                .setCreatedAt(LocalDateTime.now().minusHours(4));
 
 Order order2 = new Order()
                 .setId(1002)
-                .setStatus(Order.OrderStatus.ERROR);
+                .setStatus(Order.OrderStatus.ERROR)
+			    .setCreatedByUserId(103)
+                .setCreatedAt(LocalDateTime.now().minusHours(1));
 
 Order order3 = new Order()
                 .setId(1003)
-                .setStatus(Order.OrderStatus.PROCESSED);
+                .setStatus(Order.OrderStatus.PROCESSED)
+                .setCreatedByUserId(102)
+                .setCreatedAt(LocalDateTime.now().minusHours(36));
 
 Order order4 = new Order()
                 .setId(1004)
-                .setStatus(Order.OrderStatus.ERROR);
+                .setStatus(Order.OrderStatus.ERROR)
+                .setCreatedByUserId(104)
+                .setCreatedAt(LocalDateTime.now().minusHours(40));
 
 Order order5 = new Order()
                 .setId(1005)
-                .setStatus(Order.OrderStatus.IN_PROGRESS);
+                .setStatus(Order.OrderStatus.IN_PROGRESS)
+                .setCreatedByUserId(101)
+                .setCreatedAt(LocalDateTime.now().minusHours(10));
 
 List<Order> orders = Arrays.asList(order1, order2, order3, order4, order5);
 ```
@@ -236,7 +246,7 @@ List<String> emailAddresses = users.stream()
                 .collect(Collectors.toList());
 ```
 
-> 위 filter에서 사용했던 order 리스트(List\<Order> orders)를 활용하여, createdByUserId를 모으는 map을 구현하라. 단, createdByUserId 값을 추가하여 진행한다.(order1=101, order2 =103, order3=102, order4=104, order5=101 이 생성했다고 가정하여 추가한다.)
+> 위 filter에서 사용했던 order 리스트(List\<Order> orders)를 활용하여, createdByUserId를 모으는 map을 구현하라.
 
 ```java
 List<Long> createdByUserIds = orders.stream()
@@ -246,5 +256,37 @@ List<Long> createdByUserIds = orders.stream()
 
 
 
+## Sorted
 
+데이터가 순서대로 정렬된 stream을 리턴해주며, 데이터의 종류에 따라 Comparator가 필요할 수 있다.
+
+```java
+Stream<T> sorted();
+Stream<T> sorted(Comparator<? super T> comparator);
+```
+
+> 임의의 정수를 담은 리스트를 생성하고, 이 리스트를 오름차순으로 정렬하는 새로운 리스트를 생성하라.
+
+```java
+List<Integer> numbers = Arrays.asList(3, -5, 7, 4);
+List<Integer> sortedNumbers = numbers.stream()
+                .sorted()
+                .collect(Collectors.toList());
+```
+
+> 위 filter에서 사용했던 users 리스트(List\<User> users)를 활용하여, 이름을 오름차순으로 정렬하라. 단, name 값을 수정하여 진행한다. (users1=Paul, users2=David, users3=John 으로 변경)
+
+```java
+List<User> sortedUsers = users.stream()
+                .sorted((u1, u2) -> u1.getName().compareTo(u2.getName()))
+                .collect(Collectors.toList());
+```
+
+> 위 filter에서 사용했던 order 리스트(List\<Order> orders)를 활용하여, 가장 먼저 만들어진 order 순으로 정렬하라. (createdAt 기준)
+
+```java
+List<Order> sortedOrders = orders.stream()
+                .sorted((o1, o2) -> o1.getCreatedAt().compareTo(o2.getCreatedAt()))
+                .collect(Collectors.toList());
+```
 
