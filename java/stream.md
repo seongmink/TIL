@@ -290,3 +290,37 @@ List<Order> sortedOrders = orders.stream()
                 .collect(Collectors.toList());
 ```
 
+
+
+## Distinct
+
+스트림 안에 있는 데이터들 중에서 중복을 제거하여, unique 한 값들만 스트림을 만들어준다. Object의 경우에는 같은지 경우를 비교할 때 equals 비교를 하니 equals override를 하지 않으면 원하지 않은 결과를 받을 수 있으니 유의해야 한다.
+
+```java
+Stream<T> distinct();
+```
+
+> 정수로 이루어진 리스트에서 중복된 값을 제거하여 새로운 리스트를 만들어라.
+
+```java
+List<Integer> numbers = Arrays.asList(3, -5, 4, -5, 2, 3);
+List<Integer> distinctNumbers = numbers.stream()
+                .distinct()
+                .collect(Collectors.toList());
+```
+
+> 위 fitler에서 사용했던 order 리스트(List\<Order> orders)를 활용하여, 중복되지 않은 createdByUserId를 오름차순으로 정렬하여 리스트로 만들어라.
+
+```java
+List<Long> userIds = orders.stream()
+                .map(Order::getCreatedByUserId)
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+```
+
+
+
+## FlatMap
+
+Map + Flatten 
