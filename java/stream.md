@@ -323,4 +323,91 @@ List<Long> userIds = orders.stream()
 
 ## FlatMap
 
-Map + Flatten 
+스트림을 사용하다보면 최종 결과가 Stream 인 경우가 있다. 데이터를 변형할 때, 그 결과가 스트림이 된다면 그 스트림을 쭉 이어서 하나로 만드는 것이 map을 적용하는 것이고 추가로 중첩된 스트림을 납작하게 만드는 flatmap이다. (데이터에 함수를 적용한 후 중첩된 stream을 연결하여 하나의 stream으로 리턴)
+
+아래의 flatMap을 살펴보자.
+
+```java
+<R> Stream<R> flatMap(Function<? super T, ? extends Stream<? extends R>> mapper);
+```
+
+위 function은 T를 받아 R 타입의 데이터를 나오는 스트림을 반환한다. map을 통하여 위 function에 넘긴다면 R 타입의 스트림들이 나오는 스트림을 하나씩 받는다. 그 안에는 R타입의 스트림이 들어있다. 이것을 납작하게 스트림을 벗기고 R타입의 스트림을 받는 것이아니라 R을 받을 수 있도록 만들어 주는 것이 flatMap이다.
+
+다음과 같은 2차원 문자열 배열 cities가 존재한다고 하자.
+
+```java
+String[][] cities = new String[][] {
+    {"Seoul", "Busan"},
+    {"San Francisco", "New York"},
+    {"Madrid", "Barcelona"}
+};
+```
+
+이 2차원 문자열 배열을 하나의 List로 담고 싶다면 어떻게 해야할까?
+
+```java
+Stream<String[]> cityStream = Arrays.stream(cities);
+Stream<Stream<String>> cityStreamStream = cityStream.map(x -> Arrays.stream(x));
+List<Stream<String>> cityStreamList = cityStreamStream.collect(Collectors.toList());
+```
+
+이렇게 변환하고자 했지만, List\<Stream\<String>> 과 같이 원하지 않는 타입이 리턴된다. 이것을 flatMap을 사용하여 해결해보자.
+
+```java
+Stream<String[]> cityStream2 = Arrays.stream(cities);
+Stream<String> flattenedCityStream = cityStream2.flatMap(x -> Arrays.stream(x));
+List<String> flattenedCityList = flattenedCityStream.collect(Collectors.toList());
+```
+
+위와 같이 flatMap을 사용하여 원하는 문자열 List로 담을 수 있게 되었다.
+
+추가로, 다음과 같은 Order들이 존재한다고 해보자.
+
+```java
+Order order1 = new Order()
+                .setId(1001)
+                .setOrderLines(Arrays.asList(
+                        new OrderLine()
+                            .setId(10001)
+                            .setType(OrderLine.OrderLineType.PURCHASE)
+                            .setAmount(BigDecimal.valueOf(5000)),
+                        new OrderLine()
+                            .setId(10002)
+                            .setType(OrderLine.OrderLineType.PURCHASE)
+                            .setAmount(BigDecimal.valueOf(4000))
+                ));
+
+Order order2 = new Order()
+                .setId(1002)
+                .setOrderLines(Arrays.asList(
+                        new OrderLine()
+                                .setId(10003)
+                                .setType(OrderLine.OrderLineType.PURCHASE)
+                                .setAmount(BigDecimal.valueOf(2000)),
+                        new OrderLine()
+                                .setId(10004)
+                                .setType(OrderLine.OrderLineType.DISCOUNT)
+                                .setAmount(BigDecimal.valueOf(-1000))
+                ));
+
+Order order3 = new Order()
+                .setId(1003)
+                .setOrderLines(Arrays.asList(
+                        new OrderLine()
+                                .setId(10005)
+                                .setType(OrderLine.OrderLineType.PURCHASE)
+                                .setAmount(BigDecimal.valueOf(2000))
+                ));
+```
+
+Order가 여러개가 존재하는데, 하나의 Order로 합쳐야 하는 경우가 존재한다. (사용자가 장바구니에 물건들을 담고 한번에 결제하려고 하는 경우) 최종적으로 List\<OrderLine>을 가지고 싶다고 할때 flatMap을 활용하여 구현해보자.
+
+```java
+List<Order> orders = Arrays.asList(order1, order2, order3);
+List<OrderLine> mergedOrderLines = orders.stream() // Stream<Order>
+                .map(Order::getOrderLines)         // Stream<List<OrderLine>>
+//              .map(List::stream)                 // Stream<Stream<OrderLine>> (X)
+                .flatMap(List::stream)             // Stream<OrderLine>
+                .collect(Collectors.toList());
+```
+
