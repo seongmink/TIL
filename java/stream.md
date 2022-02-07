@@ -411,3 +411,23 @@ List<OrderLine> mergedOrderLines = orders.stream() // Stream<Order>
                 .collect(Collectors.toList());
 ```
 
+
+
+------
+
+스트림의 구성 요소 중 Terminal Operation (종결 처리)에 대해서 알아보자. 종결 처리를 통해 최종 결과물을 도출하는데, 종결 처리의 실행이 진행될 때 중간 처리들도 비로소 실행 된다(Lazy Evaluation)
+
+## Max/Min/Count
+
+스트림안의 데이터의 최대값/최소값/개수를 뽑아낼 때 사용한다.
+
+```java
+Optional<T> max(Comparator<? super T> comparator);
+Optional<T> min(Comparator<? super T> comparator);
+long count();
+```
+
+- max : stream 안의 데이터 중 최대값을 반환. stream이 비어있다면 빈 Optional을 반환
+- min : stream 안의 데이터 중 최소값을 반환. stream이 비어있다면 빈 Optional을 반환
+- count : stream 안의 데이터의 개수를 반환
+
