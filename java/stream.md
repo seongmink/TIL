@@ -417,7 +417,7 @@ List<OrderLine> mergedOrderLines = orders.stream() // Stream<Order>
 
 스트림의 구성 요소 중 Terminal Operation (종결 처리)에 대해서 알아보자. 종결 처리를 통해 최종 결과물을 도출하는데, 종결 처리의 실행이 진행될 때 중간 처리들도 비로소 실행 된다(Lazy Evaluation)
 
-## Max/Min/Count
+## Max / Min / Count
 
 스트림안의 데이터의 최대값/최소값/개수를 뽑아낼 때 사용한다.
 
@@ -430,4 +430,28 @@ long count();
 - max : stream 안의 데이터 중 최대값을 반환. stream이 비어있다면 빈 Optional을 반환
 - min : stream 안의 데이터 중 최소값을 반환. stream이 비어있다면 빈 Optional을 반환
 - count : stream 안의 데이터의 개수를 반환
+
+
+
+## All Match / Any Match
+
+```java
+boolean allMatch(Predicate<? super T> predicate);
+boolean anyMatch(Predicate<? super T> predicate);
+```
+
+- allMatch : stream 안의 모든 데이터가 predicate을 만족하면 true
+- anyMatch : steram 안의 데이터 중 하나라도 predicate을 만족하면 true
+
+
+
+## Find First / Find Any
+
+```java
+Optional<T> findFirst();
+Optional<T> findAny();
+```
+
+- findFirst : stream 안의 첫번째 데이터를 반환. stream이 비어있다면 빈 Optional을 반환
+- findAny : steram 안의 아무 데이터나 리턴. 순서가 중요하지 않고 Parallel Stream을 사용할 때 최적화를 할 수 있다. stream이 비어있다면 빈 Optional을 반환
 
