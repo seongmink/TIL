@@ -455,3 +455,19 @@ Optional<T> findAny();
 - findFirst : stream 안의 첫번째 데이터를 반환. stream이 비어있다면 빈 Optional을 반환
 - findAny : steram 안의 아무 데이터나 리턴. 순서가 중요하지 않고 Parallel Stream을 사용할 때 최적화를 할 수 있다. stream이 비어있다면 빈 Optional을 반환
 
+
+
+## Reduce
+
+주어진 함수를 반복 적용해 stream 안의 데이터를 하나의 값으로 합치는 작업이다. max, min, count도 reduce의 일종임.
+
+```java
+Optional<T> reduce(BinaryOperator<T> accumulator);
+T reduce(T identity, BinaryOperator<T> accumulator);
+<U> U reduce(U identity, BiFunction<U, ? super T, U> accumulator, BinaryOperator<U> combiner);
+```
+
+- reduce1 : 주어진 accumulator를 이용해 데이터를 합침. stream이 비어있을 경우 빈 Optional을 반환
+- reduce2 : 주어진 초기값과 accumulator를 이용. 초기값이 있기 때문에 항상 반환값이 존재
+- reduce3 : 합치는 과정에서 타입이 바뀔 경우 사용. Map + reduce로 대체 가능
+
