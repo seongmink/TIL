@@ -471,3 +471,51 @@ T reduce(T identity, BinaryOperator<T> accumulator);
 - reduce2 : 주어진 초기값과 accumulator를 이용. 초기값이 있기 때문에 항상 반환값이 존재
 - reduce3 : 합치는 과정에서 타입이 바뀔 경우 사용. Map + reduce로 대체 가능
 
+순차적으로 동작하는 예시를 보자.
+
+```java
+List<Integer> numbers = Arrays.asList(1, 4, -2, -5, 3);
+```
+
+이러한 리스트가 존재한다고 할 때, 이 값들을 reduce를 사용하여 모두 더해보는 코드를 다음과 같이 작성할 수 있다.
+
+##### reduce1 예시
+
+```java
+int min = numbers.stream()
+                .reduce((x, y) -> x + y)
+                .get()
+```
+
+이 경우, 1과 4를 더한 값(5)과 -2를 더한 값(3)과 -5를 더한 값(-2)과 3을 더한 값(1)을 반환하게 된다.
+
+##### reduce2 예시
+
+```java
+int product = numbers.stream()
+                .reduce(1, (x, y) -> x * y);
+```
+
+기본 값이 1로 지정하고 나머지 값들을 곱한 값을 반환하도록 했다. 기본 값이 존재하기 때문에 Optional이 아니며, get() 을 사용하여 값을 가져오지 않는다.
+
+##### reduce3 예시
+
+```java
+List<String> numberStrList = Arrays.asList("3", "2", "5", "-4");
+```
+
+위와 같은 문자열로 된 숫자가 존재하고 이 숫자들을 더한 값을 얻고 싶을 때,
+
+```java
+int sumOfNumberStrList = numberStrList.stream()
+                .map(Integer::parseInt)
+                .reduce(0, (x, y) -> x + y);
+```
+
+이렇게 map을 사용하여 숫자로 변환하고, reduce를 사용하여 연산하면 된다. 하지만 이 경우를 더 간단하게 할 수 있는 방법이 있다. (map + reduce 같은 방법을 더 많이 사용하긴 함)
+
+```java
+int sumOfNumberStrList2 = numberStrList.stream()
+                .reduce(0, (number, str) -> number + Integer.parseInt(str), (num1, num2) -> num1 + num2);
+```
+
