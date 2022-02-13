@@ -519,3 +519,45 @@ int sumOfNumberStrList2 = numberStrList.stream()
                 .reduce(0, (number, str) -> number + Integer.parseInt(str), (num1, num2) -> num1 + num2);
 ```
 
+
+
+## To Map
+
+stream 안의 데이터를 map의 형태로 반환해주는 Collector이다.
+
+```java
+public static <T, K, U> Collector<T, ?, Map<K, U>> toMap(
+    Function<? super T, ? extends K> keyMapper, 
+    Function<? super T, ? extends U> valueMapper)
+```
+
+- keyMapper : 데이터를 map의 key로 변환하는 Function
+- valueMapper : 데이터를 map의 value로 변환하는 Function
+
+> 임의의 정수들을 만든 후, 정수들을 key로 만들고 key를 나타내는 문자열을 value로 지정하여 <Integer, String> 타입의 map으로 변환하라.
+
+```java
+Map<Integer, String> numberMap = Stream.of(3, 5, -4, 2, 6)
+                .collect(Collectors.toMap(x -> x, x -> "Number is " + x));
+```
+
+이와 같이 나타낼 수 있으며, 여기서 `x -> x` 로 나타낸 Function을  `Function.identity()` 로 사용해도 무방하다.
+
+
+
+## Grouping By
+
+stream 안의 데이터에 classifier를 적용했을 때 결과값이 같은 값 끼리 List로 모아서 Map의 형태로 반환해주는 Collector이다.
+
+```java
+public static <T, K> Collector<T, ?, Map<K, List<T>>>> groupingBy(Function<? super T, ? extends K> classifier)
+```
+
+예를 들어, stream에 {1, 2, 3, 5, 7, 9, 12 13}이 있을 때 classifier가 `x -> x % 3` 이라면 map은 {0 = [9, 12], 1= 1, 7, 13], 2 = 2[2, 5]} 가 된다.
+
+다음과 같이 두 번째 매개변수로 downStream collector를 넘기는 것도 가능하다. 이 경우 List대신 Collector를 적용시킨 값으로 map의 value가 만들어지며, 자주 쓰이는 것이 mapping / reducing 등의 Collector이다.
+
+```java
+public static <T, K, A, D> Collector<T, ?, Map<K, D>> groupingBy(Function<? super T, ? extends K> classifier, Collector<? super T, A, D> downStream)
+```
+
