@@ -104,3 +104,23 @@ System.out.println(integers);
 ```
 
 peek()을 통해 현재 숫자를 출력 후, "Before collect"을 출력할 것 같지만 위 코드를 실행하면 "Before collect"를 출력하고 peeking 을 출력하게 된다. 종결 처리인 collect가 "Before collect"보다 아래에 있기 때문이다.
+
+
+
+## Function Composition
+
+여러 개의 함수를 합쳐 하나의 새로운 함수를 만드는 것을 의미한다.
+
+```java
+<V> Function<V, R> compose(Function<? super V, ? extends T> before)
+<V> Function<T, V> andThen(Function<? super R, ? extends V> after)
+```
+
+- compose : 파라미터로 들어온 함수를 먼저 실행하고, 그 다음 자기 자신을 실행한다.
+
+- andThen : 자기를 먼저 실행하고, 파라미터로 들어온 함수를 실행한다.
+
+compose를 사용하면 써있는 순서가 실행의 반대가 되기 때문에, 헷갈려서 보통 andThen을 사용한다고 한다.
+
+
+
