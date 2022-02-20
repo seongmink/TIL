@@ -149,3 +149,113 @@ User user = User.builder(1, "Alice")
     			}).build();
 ```
 
+
+
+## 데코레이터 패턴(Decorator Pattern)
+
+- 구조 패턴의 하나이다.
+- 용도에 따라 객체에 기능을 계속 추가(decorate)할 수 있게 해준다.
+
+예제를 위해 String 타입의 가격을 담고 있는 Price 클래스를 생성한다. 가격을 나타내기 위해 숫자형으로 선언하는게 맞지만, 어떻게 적용 되는지 확인하기 위해 문자열로 진행한다.
+
+```java
+public class Price {
+    private final String price;
+
+    public Price(String price) {
+        this.price = price;
+    }
+
+    public String getPrice() {
+        return price;
+    }
+}
+```
+
+PriceProcessor들의 뼈대가 될 함수형 인터페이스를 만든다.
+
+```java
+@FunctionalInterface
+public interface PriceProcessor {
+    Price process(Price price); // Price를 받아서 process를 하고 Price를 리턴함
+
+    default PriceProcessor andThen(PriceProcessor next) {
+        return price -> next.process(process(price));
+    }
+}
+```
+
+andThen이 호출되면 새로운 PriceProcessor를 리턴한다. 구현되지 않은 메소드가 하나밖에 없기 때문에 `@FunctionalInterface`임을 이용하여 람다를 사용하여 위와 같이 구현할 수 있다. 기존 price를 받아와서 자신 먼저 process를 해주고, next로 들어온 process를 하여 새로운 PriceProcessor를 만들어서 리턴해준다.
+
+##### BasicPriceProcessor
+
+단순히 아무것도 process를 진행하지 않고, Price를 리턴하는 priceProcess 이다.
+
+```java
+public class BasicPriceProcessor implements PriceProcessor {
+
+    @Override
+    public Price process(Price price) {
+        return price;
+    }
+}
+```
+
+##### DiscountPriceProcessor
+
+기존 price에 discount 처리했다는 내용을 반환하는 priceProcess를 만든다.
+
+```java
+public class DiscountPriceProcessor implements PriceProcessor {
+
+    @Override
+    public Price process(Price price) {
+        return new Price(price.getPrice() + ", then applied discount");
+    }
+}
+```
+
+##### TaxPriceProcessor
+
+기존 price에 tax 처리했다는 내용을 반환하는 priceProcess를 만든다.
+
+```java
+public class TaxPriceProcessor implements PriceProcessor {
+
+    @Override
+    public Price process(Price price) {
+        return new Price(price.getPrice() + ", then applied tax");
+    }
+}
+```
+
+Price와 세 개의 priceProcessor로 적용해보자.
+
+```java
+// init ----------------------
+Price unprocessedPrice = new Price("Original Price");
+
+PriceProcessor basicPriceProcessor = new BasicPriceProcessor();
+PriceProcessor discountPriceProcessor = new DiscountPriceProcessor();
+PriceProcessor taxPriceProcessor = new TaxPriceProcessor();
+// ---------------------------
+// 1) decorate 적용
+PriceProcessor decoratedPriceProcessor = basicPriceProcessor
+    .andThen(discountPriceProcessor)
+    .andThen(taxPriceProcessor);
+
+Price processedPrice = decoratedPriceProcessor.process(unprocessedPrice);
+System.out.println(processedPrice.getPrice());
+// => Original Price, then applied discount, then applied tax
+// ---------------------------
+// 2) 람다 적용
+PriceProcessor decoratedPriceProcessor2 = basicPriceProcessor
+    .andThen(taxPriceProcessor)
+    .andThen(price -> new Price(price.getPrice() + ", then apply another procedure"));
+
+Price processedPrice2 = decoratedPriceProcessor2.process(unprocessedPrice);
+
+System.out.println(processedPrice2.getPrice());
+// => Original Price, then applied tax, then apply another procedure
+```
+
