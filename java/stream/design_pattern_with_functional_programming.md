@@ -259,3 +259,130 @@ System.out.println(processedPrice2.getPrice());
 // => Original Price, then applied tax, then apply another procedure
 ```
 
+
+
+## 전략 패턴(Strategy Pattern)
+
+- 대표적인 행동 패턴이다.
+- 런타임에 어떤 전략(알고리즘)을 사용할 지 선택할 수 있게 해준다.
+- 전략들을 캡슐화 하여 간단하게 교체할 수 있게 해준다.
+
+전략을 `이메일을 어떻게 만드는가`로 잡고 이를 구현해보자.
+
+먼저, User를 받아 이메일을 만들어서 리턴을 해주는 인터페이스를 만든다.
+
+```java
+public interface EmailProvider {
+    String getEmail(User user);
+}
+```
+
+전략을 사용할 EmailSender를 만든다. EmailProvider를 가지고 있고, 실시간으로 전략을 바꿀 수 있도록 setter를 하나 만들고, 이메일을 보내는 sendEmail을 추가하자.
+
+```java
+public class EmailSender {
+    private EmailProvider emailProvider;
+
+    public EmailSender setEmailProvider(EmailProvider emailProvider) {
+        this.emailProvider = emailProvider;
+        return this;
+    }
+
+    public void sendEmail(User user) {
+        String email = emailProvider.getEmail(user);
+        System.out.println(email);
+    }
+}
+```
+
+EmailProvider들의 뼈대가 될 인터페이스를 만든다.
+
+```java
+public interface EmailProvider {
+    String getEmail(User user);
+}
+```
+
+##### VerifyYourEmailAddressEmailProvider
+
+이메일을 인증하지 않은 사용자에게 인증을 하라는 내용을 가진 getEmail를 만든다.
+
+```java
+public class VerifyYourEmailAddressEmailProvider implements EmailProvider {
+
+    @Override
+    public String getEmail(User user) {
+        return "'Verify Your Email Address' email for " + user.getName();
+    }
+}
+```
+
+##### MakeMoreFriendsEmailProvider
+
+친구의 수가 적은 사용자에게 친구를 더 만들으라는 내용을 가진 getEmail을 만든다.
+
+```java
+public class MakeMoreFriendsEmailProvider implements EmailProvider {
+
+    @Override
+    public String getEmail(User user) {
+        return "'Make More Friends' email for " + user.getName();
+    }
+}
+```
+
+위 두 개의 Provider로 예제를 만들어보자.
+
+```java
+// init ----------------------
+User user1 = User.builder(1, "Alice")
+    .with(builder -> {
+        builder.emailAddress = "alice@test.com";
+        builder.isVerified = false;
+        builder.friendUserIds = Arrays.asList(201, 202, 203, 204, 211, 212, 213, 214);
+    }).build();
+
+User user2 = User.builder(2, "Bob")
+    .with(builder -> {
+        builder.emailAddress = "bob@test.com";
+        builder.isVerified = true;
+        builder.friendUserIds = Arrays.asList(212, 213, 214);
+    }).build();
+
+User user3 = User.builder(3, "Charlie")
+    .with(builder -> {
+        builder.emailAddress = "charlie@test.com";
+        builder.isVerified = true;
+        builder.friendUserIds = Arrays.asList(201, 202, 203, 204, 211, 212);
+    }).build();
+
+List<User> users = Arrays.asList(user1, user2, user3);
+
+EmailSender emailSender = new EmailSender();
+EmailProvider verifyYourEmailAddressEmailProvider = new VerifyYourEmailAddressEmailProvider();
+EmailProvider makeMoreFriendsEmailProvider = new MakeMoreFriendsEmailProvider();
+// ---------------------------
+// 1) strategy 적용 (전략을 인증으로 선택 후 인증하지 않은 사용자에게 이메일을 보냄)
+emailSender.setEmailProvider(verifyYourEmailAddressEmailProvider);
+users.stream()
+    .filter(user -> !user.isVerified())
+    .forEach(emailSender::sendEmail);
+// => Sending 'Verify Your Email Address' email for Alice
+// ---------------------------
+// 2) strategy 적용 (인증된 사용자이면서 친구의 수가 5명 이하인 사용자에게 친구를 더 만들으라는 이메일을 보냄)
+emailSender.setEmailProvider(makeMoreFriendsEmailProvider);
+users.stream()
+    .filter(User::isVerified)
+    .filter(user -> user.getFriendUserIds().size() <= 5)
+    .forEach(emailSender::sendEmail);
+// => Sending 'Make More Friends' email for Bob
+// ---------------------------
+// 3) 람다 적용
+emailSender.setEmailProvider(user -> "'Play With Friends' email for " + user.getName());
+users.stream()
+    .filter(User::isVerified)
+    .filter(user -> user.getFriendUserIds().size() > 5)
+    .forEach(emailSender::sendEmail);
+// => Sending 'Play With Friends' email for Charlie
+```
+
