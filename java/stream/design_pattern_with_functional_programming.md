@@ -386,3 +386,137 @@ users.stream()
 // => Sending 'Play With Friends' email for Charlie
 ```
 
+
+
+## 템플릿 메소드 패턴(Template Method Pattern)
+
+- 또 하나의 대표적인 행동 패턴이다.
+- 상위 클래스는 알고리즘의 뼈대만을 정의하고 알고리즘의 각 단계는 하위 클래스에게 정의를 위임하는 패턴이다.
+- 알고리즘의 구조를 변경하지 않고 세부 단계를 유연하게 변경할 수 있게 해준다.
+
+먼저 알고리즘의 뼈대를 담당할 abstarct class를 생성한다. 
+
+**AbstractUserService**
+
+미 구현된 메소드들은 abstract를 구현하는 클래스들이 구현하게 된다. 검증하는 과정과 DB에 쓰는 과정도 하위 클래스에게 맡긴다.
+
+```java
+public abstract class AbstractUserService {
+    protected abstract boolean validateUser(User user);
+
+    protected abstract void writeToDB(User user);
+
+    public void createUser(User user) {
+        if (validateUser(user)) {
+            writeToDB(user);
+        } else {
+            System.out.println("Cannot create users");
+        }
+    }
+}
+```
+
+##### UserService
+
+`AbstractUserService`를 상속받으며 유저의 이름과 이메일이 존재하면 검증이 성공되었다고 하자.
+
+```java
+public class UserService extends AbstractUserService {
+
+    @Override
+    protected boolean validateUser(User user) {
+        System.out.println("Validating user " + user.getName());
+        return user.getName() != null && user.getEmailAddress().isPresent();
+    }
+
+    @Override
+    protected void writeToDB(User user) {
+        System.out.println("Writing user " + user.getName() + " to DB");
+    }
+}
+```
+
+##### InternalUserService
+
+`AbstractUserService`를 상속받으며 어떤 경우이든 성공하도록 validateUser를 구현했다.
+
+```java
+public class InternalUserService extends AbstractUserService {
+
+    @Override
+    protected boolean validateUser(User user) {
+        System.out.println("Validating internal user " + user.getName());
+        return true;
+    }
+
+    @Override
+    protected void writeToDB(User user) {
+        System.out.println("Writing user " + user.getName() + " to internal DB");
+    }
+}
+```
+
+위 두 클래스를 활용하는 예제를 만들어보자.
+
+```java
+// init ----------------------
+User alice = User.builder(1, "Alice")
+    .with(builder -> {
+        builder.emailAddress = "alice@test.com";
+        builder.isVerified = false;
+        builder.friendUserIds = Arrays.asList(201, 202, 203, 204, 211, 212, 213, 214);
+    }).build();
+
+UserService userService = new UserService();
+InternalUserService internalUserService = new InternalUserService();
+// ---------------------------
+// 1) userService 적용
+userService.createUser(alice);
+// => Validating user Alice
+//    Writing user Alice to DB
+// 2) internalUserService 적용
+internalUserService.createUser(alice);
+// => Validating internal user Alice
+//    Writing user Alice to internal DB
+```
+
+뼈대는 같고 구현하는 내용은 다르기 때문에 처리하는 과정이 다르다.
+
+템플릿을 매번 새로운 클래스를 만들지 않고 유연하게 하기 위해 함수형 프로그래밍을 통해 구현해보자. 새로운 템플릿을 만들고 abstract method 대신 함수형 인터페이스를 가지도록 만들자.
+
+```java
+public class UserServiceInFunctionalWay {
+    private final Predicate<User> validateUser;
+    private final Consumer<User> writeToDB;
+
+    public UserServiceInFunctionalWay(Predicate<User> validateUser, Consumer<User> writeToDB) {
+        this.validateUser = validateUser;
+        this.writeToDB = writeToDB;
+    }
+
+    public void createUser(User user) {
+        if (validateUser.test(user)) {
+            writeToDB.accept(user);
+        } else {
+            System.out.println("Cannot create user");
+        }
+    }
+}
+```
+
+validateUser와 writeToDB라는 함수형 인터페이스를 갖도록 만들었다. 이 함수형 인터페이스들은 Object가 만들어질때 생성자에서 받아올 수 있도록 한다. createUser도 함수형 인터페이스를 넘겨주는 값에 따라 변경할 수 있도록 수정하자.
+
+```java
+UserServiceInFunctionalWay userServiceInFunctionalWay = new UserServiceInFunctionalWay(
+    user -> {
+        System.out.println("Validating user " + user.getName());
+        return user.getName() != null && user.getEmailAddress().isPresent();
+    },
+    user -> {
+        System.out.println("Writing user " + user.getName() + " to DB");
+    });
+
+userServiceInFunctionalWay.createUser(alice);
+// => Validating user Alice
+//    Writing user Alice to DB
+```
