@@ -520,3 +520,144 @@ userServiceInFunctionalWay.createUser(alice);
 // => Validating user Alice
 //    Writing user Alice to DB
 ```
+
+
+
+## 책임 연쇄 패턴(Chain of Responsibility Pattern)
+
+- 행동 패턴의 하나이다.
+- 명령과 명령을 각각의 방법으로 처리할 수 있는 처리 객체들이 있을 때,
+  - 처리 객체들을 체인으로 엮는다.
+  - 명령을 처리 객체들이 체인의 앞에서부터 하나씩 처리해보도록 한다.
+  - 각 처리 객체는 자신이 처리할 수 없을 때 체인의 다음 처리 객체로 명령(책임)을 넘긴다.
+  - 체인의 끝에 다다르면 처리가 끝난다.
+- 새로운 처리 객체를 추가하는 것으로 매우 간단히 처리 방법을 더할 수 있다.
+
+orderProcess하며 각 단계를 나타내는 `OrderProcessStep`을 만들자.
+
+```java
+public class OrderProcessStep {
+    private final Consumer<Order> processOrder;
+    private OrderProcessStep next;
+
+    public OrderProcessStep(Consumer<Order> processOrder) {
+        this.processOrder = processOrder;
+    }
+
+    public OrderProcessStep setNext(OrderProcessStep next) {
+        if (this.next == null) {
+            this.next = next;
+        } else {
+            this.next.setNext(next);
+        }
+        return this;
+    }
+
+    public void process(Order order) {
+        processOrder.accept(order);
+        Optional.ofNullable(next)
+                .ifPresent(nextStep -> nextStep.process(order));
+    }
+}
+```
+
+여기서 next는 다음 명령을 가질 대상을 지목하기 위해 필요한데, linkedList를 생각하면 된다. setNext는 현재 대상의 다음을 가리키게 된다. `process()`는 consumer를 실행해주고, 다음 next가 존재한다면 실행할 수 있게 해준다.
+
+이를 사용하는 예제를 만들어보자.
+
+```java
+// init ----------------------
+// 1) CREATED 상태일 때 실행하며, 상태를 IN_PROGRESS로 변경한다.
+OrderProcessStep initializeStep = new OrderProcessStep(order -> {
+   if (order.getStatus() == Order.OrderStatus.CREATED) {
+       System.out.println("Start processing order " + order.getId());
+       order.setStatus(Order.OrderStatus.IN_PROGRESS);
+   }
+});
+// 2) IN_PROGRESS 상태일 때 실행하며, 주문 값을 더해준다.
+OrderProcessStep setOrderAmountStep = new OrderProcessStep(order -> {
+    if (order.getStatus() == Order.OrderStatus.IN_PROGRESS) {
+        System.out.println("Setting amount of order " + order.getId());
+        order.setAmount(order.getOrderLines().stream()
+                .map(OrderLine::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add));
+    }
+});
+// 3) IN_PROGRESS 상태일 때 실행하며, 더한 값이 유효한 숫자인지 확인하는 작업을 거친다. (0 이하인 경우를 잘못된 상태라고 가정) 만약 잘못되었다면 상태를 ERROR로 변경한다.
+OrderProcessStep verifyOrderStep = new OrderProcessStep(order -> {
+    if (order.getStatus() == Order.OrderStatus.IN_PROGRESS) {
+        System.out.println("Verifying order " + order.getId());
+        if (order.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            order.setStatus(Order.OrderStatus.ERROR);
+        }
+    }
+});
+// 4) IN_PROGRESS 상태일 때 실행하며, 상태를 PROCESSED로 변경한다.
+OrderProcessStep processPaymentStep = new OrderProcessStep(order -> {
+    if (order.getStatus() == Order.OrderStatus.IN_PROGRESS) {
+        System.out.println("Processing payment of order " + order.getId());
+        order.setStatus(Order.OrderStatus.PROCESSED);
+    }
+});
+// 5) ERROR 상태일 때 실행하며, 에러 및 ID를 출력하도록 한다.
+OrderProcessStep handleErrorStep = new OrderProcessStep(order -> {
+    if (order.getStatus() == Order.OrderStatus.ERROR) {
+        System.out.println("Sending out 'Failed to process order' alert for order " + order.getId());
+    }
+});
+// 6) PROCESSED 상태일 때 실행하며, 정상적으로 종료 되었음을 알려준다.
+OrderProcessStep completeProcessingOrderStep = new OrderProcessStep(order -> {
+   if (order.getStatus() == Order.OrderStatus.PROCESSED) {
+       System.out.println("Finished processing order " + order.getId());
+   }
+});
+
+// work flow 생성
+OrderProcessStep chainedOrderProcessSteps = initializeStep
+                .setNext(setOrderAmountStep)
+                .setNext(verifyOrderStep)
+                .setNext(processPaymentStep)
+                .setNext(handleErrorStep)
+                .setNext(completeProcessingOrderStep);
+// ---------------------------
+```
+
+6가지의 step을 생성하고, 이를 차례로 체이닝해주었다. 각자 processing 할 수 있는 것들만 process하기 때문에 에러 상태가 중간 step이 존재하더라도 다음 step에서 처리하지 않는다.
+
+##### 정상적인 order
+
+```java
+Order order = new Order()
+                .setId(1001L)
+                .setStatus(Order.OrderStatus.CREATED)
+                .setOrderLines(Arrays.asList(
+                        new OrderLine().setAmount(BigDecimal.valueOf(1000)),
+                        new OrderLine().setAmount(BigDecimal.valueOf(2000))
+                ));
+
+chainedOrderProcessSteps.process(order);
+// => Start processing order 1001
+//    Setting amount of order 1001
+//    Verifying order 1001
+//    Processing payment of order 1001
+//    Finished processing order 1001
+```
+
+##### 잘못된 order (amount 값이 음수가 됨)
+
+```java
+Order failingOrder = new Order()
+        .setId(1002L)
+        .setStatus(Order.OrderStatus.CREATED)
+        .setOrderLines(Arrays.asList(
+                new OrderLine().setAmount(BigDecimal.valueOf(1000)),
+                new OrderLine().setAmount(BigDecimal.valueOf(-2000))
+        ));
+
+chainedOrderProcessSteps.process(failingOrder);
+// => Start processing order 1002
+//    Setting amount of order 1002
+//    Verifying order 1002
+//    Sending out 'Failed to process order' alert for order 1002
+```
+
