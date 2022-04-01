@@ -1,5 +1,7 @@
 # TIL(Today I Learned)
 
+알게 된 지식이나 기록할 필요가 있는 지식을 정리합니다.
+
 
 
 ## Java
@@ -13,3 +15,8 @@
   - [함수형 프로그래밍 응용(Application of Functional Programming)](./java/stream/application_of_functional_programming.md)
   - [함수형 프로그래밍을 이용한 디자인 패턴(Design Pattern With Functional Programming](./java/stream/design_pattern_with_functional_programming.md)
 
+
+
+## Git
+
+- [깃 명령어(Git Command)](./git/git-command.md)
